@@ -1,0 +1,442 @@
+---
+import { Image } from 'astro:assets';
+
+// Auto-discover all images in the cats folder
+const imageModules = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/images/cats/*.{jpg,jpeg,png,webp,gif}',
+  { eager: true }
+);
+
+// Load captions
+let captions: Record<string, string> = {};
+try {
+  const captionsModule = await import('/src/assets/images/cats/captions.json');
+  captions = captionsModule.default || captionsModule;
+} catch {
+  captions = {};
+}
+
+// Parse taken date from filename (format: YYYYMMDD_HHmmss.jpg)
+function parseTakenDate(filename: string): string {
+  const match = filename.match(/^(\d{4})(\d{2})(\d{2})_/);
+  if (!match) return '';
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
+}
+
+// Build image list with captions and dates
+interface CatImage {
+  src: ImageMetadata;
+  filename: string;
+  caption: string;
+  takenDate: string;
+}
+
+const images: CatImage[] = Object.entries(imageModules)
+  .map(([path, mod]) => {
+    const filename = path.split('/').pop() || '';
+    return {
+      src: mod.default,
+      filename,
+      caption: captions[filename] || '',
+      takenDate: parseTakenDate(filename),
+    };
+  })
+  .sort((a, b) => b.filename.localeCompare(a.filename));
+
+const IMAGES_PER_PAGE = 20;
+const totalPages = Math.ceil(images.length / IMAGES_PER_PAGE);
+---
+
+<div class="gallery-container" data-per-page={IMAGES_PER_PAGE}>
+  <p class="gallery-count">{images.length} photos</p>
+
+  <div class="masonry-grid" id="gallery-grid">
+    {images.map((img, i) => (
+      <div
+        class="gallery-item"
+        data-index={i}
+        style={i >= IMAGES_PER_PAGE ? 'display:none;' : ''}
+      >
+        <button class="gallery-image-btn" data-full-src={img.src.src} data-caption={img.caption} data-filename={img.filename}>
+          <Image
+            src={img.src}
+            alt={img.caption || `Cat photo ${i + 1}`}
+            widths={[400, 800, 1200]}
+            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 33vw"
+            format="webp"
+            quality={80}
+            loading={i < 6 ? 'eager' : 'lazy'}
+            class="gallery-img"
+          />
+        </button>
+        <div class="gallery-meta">
+          <span class="gallery-date">{img.takenDate}</span>
+          {img.caption && <div class="gallery-caption">{img.caption}</div>}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {totalPages > 1 && (
+    <nav class="gallery-pagination" id="gallery-pagination">
+      <button class="page-btn" id="first-btn" disabled>First</button>
+      <button class="page-btn" id="prev-btn" disabled>← Prev</button>
+      <span class="page-info" id="page-info">Page 1 of {totalPages}</span>
+      <button class="page-btn" id="next-btn">Next →</button>
+      <button class="page-btn" id="last-btn">Last</button>
+    </nav>
+  )}
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" style="display:none;">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous">‹</button>
+    <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next">›</button>
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="" />
+      <p class="lightbox-caption" id="lightbox-caption"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Masonry.js + imagesLoaded from CDN -->
+<script is:inline src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+<script is:inline src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+
+<style>
+  /* ── Gallery Count ── */
+  .gallery-count {
+    font-size: 0.9rem;
+    color: #7a8a9b;
+    font-style: italic;
+    margin: 0 0 1.5rem;
+    line-height: 2rem;
+  }
+
+  /* ── Gallery Grid ── */
+  .masonry-grid {
+    position: relative;
+  }
+
+  .gallery-item {
+    width: calc(50% - 8px);
+    margin-bottom: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f0ebe4;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(26, 58, 107, 0.12);
+  }
+
+  .gallery-image-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+  }
+
+  .gallery-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .gallery-meta {
+    padding: 8px 10px;
+  }
+
+  .gallery-date {
+    display: block;
+    font-size: 0.75rem;
+    color: #7a8a9b;
+    margin-bottom: 2px;
+  }
+
+  .gallery-caption {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #4a6a9b;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* ── Pagination ── */
+  .gallery-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #c8d8e8;
+    border-radius: 4px;
+    background: #fffef9;
+    color: #1a3a6b;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .page-btn:hover:not(:disabled) {
+    background: #1a3a6b;
+    color: #fffef9;
+    border-color: #1a3a6b;
+  }
+
+  .page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .page-info {
+    font-size: 0.9rem;
+    color: #4a6a9b;
+    font-style: italic;
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 15, 30, 0.92);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .lightbox-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lightbox-content img {
+    max-width: 90vw;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+
+  .lightbox-caption {
+    color: #c8d8e8;
+    font-style: italic;
+    font-size: 0.95rem;
+    margin-top: 0.75rem;
+    text-align: center;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2.5rem;
+    cursor: pointer;
+    line-height: 1;
+    z-index: 1001;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .lightbox-close:hover {
+    opacity: 1;
+  }
+
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 3rem;
+    cursor: pointer;
+    padding: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 1001;
+  }
+
+  .lightbox-nav:hover {
+    opacity: 1;
+  }
+
+  .lightbox-prev { left: 0.5rem; }
+  .lightbox-next { right: 0.5rem; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .gallery-item {
+      width: calc(50% - 6px);
+    }
+
+    .lightbox-nav {
+      font-size: 2rem;
+      padding: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .gallery-item {
+      width: 100%;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Wait for Masonry and imagesLoaded to be available
+  (function init() {
+    if (typeof Masonry === 'undefined' || typeof imagesLoaded === 'undefined') {
+      setTimeout(init, 50);
+      return;
+    }
+
+    var gridEl = document.getElementById('gallery-grid');
+    if (!gridEl) return;
+
+    // ── Initialize Masonry ──
+    var msnry = new Masonry(gridEl, {
+      itemSelector: '.gallery-item:not([style*="display:none"]):not([style*="display: none"])',
+      columnWidth: '.gallery-item:not([style*="display:none"]):not([style*="display: none"])',
+      percentPosition: true,
+      gutter: 12,
+      horizontalOrder: true,  // Key: ensures strict left-to-right ordering
+    });
+
+    // Layout after images load
+    imagesLoaded(gridEl, function() {
+      msnry.layout();
+    });
+
+    // ── Pagination ──
+    var container = document.querySelector('.gallery-container');
+    var perPage = parseInt(container && container.dataset.perPage || '20', 10);
+    var allItems = document.querySelectorAll('.gallery-item');
+    var totalPages = Math.ceil(allItems.length / perPage);
+    var currentPage = 1;
+
+    var firstBtn = document.getElementById('first-btn');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+    var lastBtn = document.getElementById('last-btn');
+    var pageInfo = document.getElementById('page-info');
+
+    function showPage(page) {
+      currentPage = page;
+      var start = (page - 1) * perPage;
+      var end = start + perPage;
+
+      allItems.forEach(function(item, i) {
+        item.style.display = (i >= start && i < end) ? '' : 'none';
+      });
+
+      if (firstBtn) firstBtn.disabled = page <= 1;
+      if (prevBtn) prevBtn.disabled = page <= 1;
+      if (nextBtn) nextBtn.disabled = page >= totalPages;
+      if (lastBtn) lastBtn.disabled = page >= totalPages;
+      if (pageInfo) pageInfo.textContent = 'Page ' + page + ' of ' + totalPages;
+
+      // Scroll to top of gallery
+      if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Reload Masonry with new visible items
+      msnry.reloadItems();
+      msnry.layout();
+
+      // Re-layout after lazy images load
+      imagesLoaded(gridEl, function() {
+        msnry.reloadItems();
+        msnry.layout();
+      });
+    }
+
+    if (firstBtn) firstBtn.addEventListener('click', function() { showPage(1); });
+    if (prevBtn) prevBtn.addEventListener('click', function() { showPage(currentPage - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { showPage(currentPage + 1); });
+    if (lastBtn) lastBtn.addEventListener('click', function() { showPage(totalPages); });
+
+    // Handle window resize
+    window.addEventListener('resize', function() { msnry.layout(); });
+
+    // ── Lightbox ──
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    var lightboxCaption = document.getElementById('lightbox-caption');
+    var lightboxClose = document.getElementById('lightbox-close');
+    var lightboxPrev = document.getElementById('lightbox-prev');
+    var lightboxNext = document.getElementById('lightbox-next');
+
+    var allBtns = Array.from(document.querySelectorAll('.gallery-image-btn'));
+    var currentLightboxIndex = 0;
+
+    function openLightbox(index) {
+      currentLightboxIndex = index;
+      var btn = allBtns[index];
+      var fullSrc = btn.dataset.fullSrc || '';
+      var caption = btn.dataset.caption || '';
+
+      lightboxImg.src = fullSrc;
+      lightboxImg.alt = caption || ('Cat photo ' + (index + 1));
+      lightboxCaption.textContent = caption;
+      lightboxCaption.style.display = caption ? '' : 'none';
+      lightbox.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    allBtns.forEach(function(btn, i) {
+      btn.addEventListener('click', function() { openLightbox(i); });
+    });
+
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightbox) lightbox.addEventListener('click', function(e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    if (lightboxPrev) lightboxPrev.addEventListener('click', function() {
+      if (currentLightboxIndex > 0) openLightbox(currentLightboxIndex - 1);
+    });
+    if (lightboxNext) lightboxNext.addEventListener('click', function() {
+      if (currentLightboxIndex < allBtns.length - 1) openLightbox(currentLightboxIndex + 1);
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      if (lightbox.style.display === 'none') return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft' && currentLightboxIndex > 0) openLightbox(currentLightboxIndex - 1);
+      if (e.key === 'ArrowRight' && currentLightboxIndex < allBtns.length - 1) openLightbox(currentLightboxIndex + 1);
+    });
+  })();
+</script>

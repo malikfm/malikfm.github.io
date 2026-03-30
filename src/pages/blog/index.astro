@@ -1,0 +1,162 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+// Parse date from filename (format: YYYYMMDD_HHmmss_title)
+function parseDateFromId(id: string): Date {
+  const match = id.match(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+  if (!match) return new Date(0);
+  const [, y, m, d, hh, mm, ss] = match;
+  return new Date(`${y}-${m}-${d}T${hh}:${mm}:${ss}`);
+}
+
+// Sort descending by filename (latest first)
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.id.localeCompare(a.id)
+);
+---
+
+<Layout title="Blog | Malik Fajar Mubarok" description="Writing about work, explorations, and anything in between.">
+  <header class="site-header">
+    <nav>
+      <a href="/" class="nav-home">Malik Fajar Mubarok</a>
+      <a href="/blog" class="nav-link active">Blog</a>
+      <a href="/cv" class="nav-link">CV</a>
+      <a href="/cats" class="nav-link">Cats</a>
+    </nav>
+  </header>
+
+  <main class="blog-listing">
+    <h1>Blog</h1>
+    <p class="subtitle">Writing about work, explorations, and anything in between.</p>
+
+    <ul class="post-list">
+      {posts.map((post) => {
+        const postDate = parseDateFromId(post.id);
+        return (
+        <li class="post-item">
+          <a href={`/blog/${post.id}`}>
+            <h2>{post.data.title}</h2>
+            <time datetime={postDate.toISOString()}>
+              {postDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+            {post.data.description && <p>{post.data.description}</p>}
+          </a>
+        </li>
+        );
+      })}
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; {new Date().getFullYear()} Malik Fajar Mubarok</p>
+  </footer>
+</Layout>
+
+<style>
+  .site-header {
+    padding: 1rem 2rem;
+  }
+
+  .site-header nav {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-home {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1a3a6b;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+    color: #4a6a9b;
+  }
+
+  .nav-link.active {
+    color: #1a3a6b;
+    font-weight: 500;
+  }
+
+  .blog-listing {
+    max-width: 700px;
+    margin: 2rem auto 4rem;
+    padding: 0 2rem;
+  }
+
+  .blog-listing h1 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2rem;
+    color: #1a3a6b;
+    margin: 0 0 0.5rem;
+  }
+
+  .subtitle {
+    color: #7a8a9b;
+    font-style: italic;
+    margin: 0 0 2.5rem;
+    font-size: 1rem;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .post-item {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e0dbd4;
+  }
+
+  .post-item:last-child {
+    border-bottom: none;
+  }
+
+  .post-item a {
+    display: block;
+    text-decoration: none;
+    transition: transform 0.15s ease;
+  }
+
+  .post-item a:hover {
+    transform: translateX(4px);
+  }
+
+  .post-item h2 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.3rem;
+    color: #1a3a6b;
+    margin: 0 0 0.3rem;
+    font-weight: 600;
+  }
+
+  .post-item time {
+    font-size: 0.85rem;
+    color: #7a8a9b;
+    font-style: italic;
+  }
+
+  .post-item p {
+    font-size: 0.95rem;
+    color: #4a4a4a;
+    margin: 0.5rem 0 0;
+    line-height: 1.6;
+  }
+
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: #7a8a9b;
+    font-size: 0.85rem;
+  }
+</style>

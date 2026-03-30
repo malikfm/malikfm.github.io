@@ -1,0 +1,208 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate: Date;
+}
+
+const { title, description, pubDate } = Astro.props;
+
+const formattedDate = new Date(pubDate).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<Layout title={`${title} | Malik Fajar Mubarok`} description={description}>
+  <header class="site-header">
+    <nav>
+      <a href="/" class="nav-home">Malik Fajar Mubarok</a>
+      <a href="/blog" class="nav-link">Blog</a>
+      <a href="/cv" class="nav-link">CV</a>
+      <a href="/cats" class="nav-link">Cats</a>
+    </nav>
+  </header>
+
+  <article class="paper">
+    <div class="paper-margin"></div>
+    <div class="paper-content">
+      <header class="post-header">
+        <h1>{title}</h1>
+        <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+      </header>
+
+      <div class="post-body">
+        <slot />
+      </div>
+    </div>
+  </article>
+
+  <footer class="site-footer">
+    <p>&copy; {new Date().getFullYear()} Malik Fajar Mubarok</p>
+  </footer>
+</Layout>
+
+<style>
+  /* ── Site Header ── */
+  .site-header {
+    padding: 1rem 2rem;
+    background: #f5f0eb;
+  }
+
+  .site-header nav {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-home {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1a3a6b;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-link {
+    font-size: 0.95rem;
+    color: #4a6a9b;
+  }
+
+  .nav-link:hover {
+    color: #1a3a6b;
+  }
+
+  /* ── Paper ── */
+  .paper {
+    max-width: 900px;
+    margin: 1.5rem auto 3rem;
+    background: #fffef9;
+    border-radius: 4px;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.06),
+      0 4px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Red margin line */
+  .paper-margin {
+    width: 3px;
+    min-height: 100%;
+    background: #e8a0a0;
+    flex-shrink: 0;
+    margin-left: 60px;
+  }
+
+  .paper-content {
+    flex: 1;
+    padding: 2.5rem 2.5rem 2.5rem 2rem;
+    /* Horizontal ruled lines */
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 31px,
+        #c8d8e8 31px,
+        #c8d8e8 32px
+      );
+    background-size: 100% 32px;
+    background-position: 0 26px;
+  }
+
+  /* ── Post Header ── */
+  .post-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .post-header h1 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a3a6b;
+    margin: 0 0 0.4rem;
+    line-height: 2rem;
+    padding-top: 0.35rem;
+  }
+
+  .post-header time {
+    font-size: 0.85rem;
+    color: #7a8a9b;
+    font-style: italic;
+    line-height: 2rem;
+  }
+
+  /* ── Post Body ── */
+  .post-body {
+    font-size: 1.05rem;
+    line-height: 2rem;
+    color: #1a3a6b;
+  }
+
+  .post-body :global(p) {
+    margin: 2rem 0;
+    line-height: 2rem;
+  }
+
+  .post-body :global(ul) {
+    margin: 2rem 0;
+    line-height: 2rem;
+  }
+
+  .post-body :global(h2) {
+    font-size: 1.4rem;
+    color: #1a3a6b;
+    margin: 2rem 0 1rem;
+    font-weight: 600;
+    line-height: 2rem;
+  }
+
+  .post-body :global(.cover-image) {
+    max-width: 100%;
+    height: auto;
+    margin: 2rem auto;
+    display: block;
+    border-radius: 4px;
+  }
+
+  .post-body :global(.content-image) {
+    width: 98%;
+    height: auto;
+    margin: 2rem auto;
+    display: block;
+    border-radius: 4px;
+  }
+
+  /* ── Footer ── */
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: #7a8a9b;
+    font-size: 0.85rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .paper-margin {
+      margin-left: 24px;
+    }
+
+    .paper-content {
+      padding: 2rem 1.25rem 2rem 1rem;
+    }
+
+    .post-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .paper {
+      margin: 1rem 0.5rem 2rem;
+    }
+  }
+</style>
