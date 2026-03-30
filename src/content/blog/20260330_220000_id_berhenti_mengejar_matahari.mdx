@@ -1,0 +1,32 @@
+---
+title: "[ID] Berhenti Mengejar Matahari"
+description: "Refleksi setelah tujuh setengah tahun berkecimpung di dunia IT."
+pubDate:
+---
+
+Dulu, saya sering tersilaukan dengan solusi yang **ngikut best practice banget**, suatu standar yang sering dipuja dan dianggap ideal oleh komunitas, blog, top company, atau referensi industri. Semakin scalable, semakin modern, semakin mengikuti standar ideal, maka semakin terasa **benar**.
+
+Saya sering mulai dari teknologi, bukan dari masalah. Ketika ada kebutuhan baru, refleks pertama saya adalah "tools apa yang paling modern?", "tools apa yang paling future-proof?", "tools apa yang paling scalable?", "tools apa yang dipakai top company?". Saya ingin memastikan sistem yang saya bangun bisa tahan lama, siap untuk scale, dan mengikuti **best practice** yang sering saya baca atau dengar dari blog atau komunitas.
+
+Masalahnya, pendekatan seperti itu seringnya mengarah ke solusi yang terlalu kompleks. Dulu, saya pernah menggunakan Spark hanya untuk memproses data yang sangat kecil. Problem solved, hasilnya sesuai, tapi secara praktis tidak masuk akal dan kalau dipikir-pikir lagi sekarang "ngapain segitunya ya?".
+
+Titik baliknya bukan datang dari satu kejadian besar, tapi akumulasi pengalaman. Sistem yang semakin kompleks akan semakin sulit untuk di-maintain. Waktu delivery jadi lebih lama. Biaya infrastruktur bisa membengkak. Dan yang paling penting, tidak semua kompleksitas itu benar-benar memberikan value ke bisnis. Kadang, stakeholder hanya butuh data sederhana, tepat waktu, dan bisa dipercaya.
+
+Sekarang, pendekatannya saya ubah. Saya tidak lagi mulai dari "apa stack teknologi yang ideal?" atau "bagaimana arsitektur yang ideal, yang ngikutin **best practice banget**?", tapi dari "apa yang sebenarnya dibutuhkan?". Saya mencoba memahami konteks bisnis lebih dulu, siapa yang menggunakan data ini, seberapa sering, dan seberapa kritikal. Dari situ, baru saya mempertimbangkan solusi yang paling sederhana yang masih bisa memenuhi kebutuhan tersebut.
+
+Saya mulai lebih sadar terhadap constraint seperti **cost**, **waktu**, dan **kompleksitas**. Tiga hal ini seringkali lebih menentukan daripada sekadar implementasi yang **shiny-shiny**. Alih-alih mengejar solusi yang ideal, yang paling modern, yang paling **ngikutin best practice**, saya mencari trade-off yang paling masuk akal. Bukan yang paling sempurna, tapi yang cukup.
+
+Contohnya sederhana. Jika data hanya digunakan sekali sehari sebelum meeting pagi, maka batch pipeline harian sudah oke. Tidak perlu streaming hanya demi bisa real-time. Jika total data masih dalam puluhan GB dan pertumbuhannya lambat, maka tools sederhana sudah bisa menangani itu. Tidak perlu langsung lompat ke distributed processing yang lebih berat dan kompleks.
+
+Menurut saya, pendekatan ini juga membantu mempercepat delivery. Dengan solusi yang lebih sederhana, waktu implementasi jadi lebih singkat, debugging jadi lebih mudah, sistem jadi lebih mudah dipahami, dan maintenance pun jadi lebih ringan. Ini lebih berharga daripada sekadar memiliki sistem yang terlihat **shiny**.
+
+Saya juga mulai menyadari bahwa banyak **best practice** sebenarnya sangat kontekstual. Apa yang masuk akal untuk perusahaan dengan skala data petabyte dan ratusan engineer, belum tentu relevan untuk tim kecil dengan use case yang lebih sederhana. Menurut saya, mengikuti **best practice** tanpa memahami konteks justru bisa berujung pada over-engineering. Jika SLA masih harian, pertimbangkan batch saja. Jika data masih relatif kecil, prioritaskan solusi yang sederhana dan cepat diimplementasikan.
+
+Ini bukan berarti saya anti terhadap **best practice**, saya tetap menganggap itu penting. Tapi sekarang saya melihatnya sebagai alat, bukan tujuan. Digunakan ketika memang diperlukan, bukan karena terlihat menarik atau dianggap sebagai standar ideal.
+
+<center>
+**"Pemujaan yang berlebihan tidak sehat."**
+<br/>Patrick Star
+</center>
+
+Pada akhirnya, saya belajar bahwa solusi yang baik bukan yang paling kompleks, paling modern, paling ideal, paling **ngikut best practice**, tapi yang paling sesuai dengan kebutuhan. Sederhana bukan berarti asal-asalan, yang penting ada pertimbangan matang dari keputusan yang diambil.
