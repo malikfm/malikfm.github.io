@@ -1,5 +1,15 @@
-_site
-.sass-cache
-.jekyll-cache
-.jekyll-metadata
-vendor
+# Build output
+dist/
+
+# Generated directories/files
+.astro/
+
+# Dependencies
+node_modules/
+
+# MacOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
