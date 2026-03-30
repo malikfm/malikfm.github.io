@@ -1,0 +1,60 @@
+---
+title: "[ID] Mengenal Embedding"
+description: "Sebuah representasi teks dalam bentuk vektor."
+pubDate:
+---
+import { Image } from 'astro:assets';
+import coverImg from '../../assets/images/20260330_220001_id_mengenal_embedding/20260330_220001_id_mengenal_embedding_0.jpg';
+import diagramImg from '../../assets/images/20260330_220001_id_mengenal_embedding/20260330_220001_id_mengenal_embedding_1.svg';
+
+<Image src={coverImg} alt="Mengenal embedding" class="cover-image" />
+
+Rasa-rasanya, makin hari makin sering dengar orang-orang ngomongin **embedding**. Mungkin sejak 2023 ke atas seiring naiknya popularitas LLM, RAG (Retrieval-Augmented Generation), dan vector database, terminologi tersebut makin sering kedengeran. **Embedding this**, **embedding that**, **embedding model**, dan lain sebagainya. Tapi, sebenarnya apa sih embedding itu? Kenapa bentuknya angka-angka begitu? Angka itu merepresentasikan apa?
+
+Secara sederhana, **embedding adalah representasi teks dalam bentuk vektor (sekumpulan angka)**. Teks di sini bisa berupa token, kata, kalimat, atau bahkan dokumen utuh. Sebelum menjadi embedding, teks biasanya dipecah terlebih dahulu menjadi unit-unit yang disebut **token**. Token ini tidak selalu berupa kata utuh, melainkan bisa berupa sub-kata atau bahkan karakter, tergantung metode tokenisasi yang digunakan. Contoh:
+
+<center>
+"memakan" bisa menjadi "me" + "makan"
+</center>
+
+Tujuan dari tokenisasi adalah membuat model lebih fleksibel dalam memahami berbagai variasi kata.
+
+Sekilas, embedding seolah hanya terlihat seperti **mengubah teks menjadi angka**, tapi sebenarnya lebih dari itu. Embedding adalah **representasi yang dipelajari oleh model dari data dalam jumlah besar**, sehingga mampu menangkap:
+
+* Hubungan antar kata.
+* Konteks penggunaan.
+* Kemiripan makna (semantic similarity).
+
+Artinya, embedding bukan hanya perubahan bentuk, tapi juga membawa informasi tentang **makna**. Contoh:
+
+<center>
+kata "makan" akan lebih dekat dengan "minum" dibandingkan dengan "mobil"
+<br/>karena dalam data training kedua kata tersebut sering muncul dalam konteks yang mirip
+</center>
+
+Menurut saya, cara paling intuitif untuk memahami embedding adalah dengan membayangkannya sebagai sebuah **peta**. Pada peta, setiap lokasi punya koordinat (latitude, longitude), dari situ kita bisa mengukur jarak antar lokasi.
+
+<Image src={diagramImg} alt="Ilustrasi embedding sebagai peta vektor" class="content-image" />
+
+Dalam embedding, setiap token atau teks direpresentasikan sebagai vektor (ibaratnya ini adalah koordinat) dan kita bisa mengukur jaraknya. Jarak antar vektor menunjukkan tingkat kemiripan makna. Semakin dekat jarak antar dua titik maka semakin mirip maknanya secara semantik atau konteks penggunaannya. Sebaliknya, semakin jauh maka semakin berbeda maknanya.
+
+Kita hanya bisa membayangkannya maksimal hingga berdimensi 3, sedangkan embedding bisa memiliki dimensi ratusan atau bahkan ribuan. Namun, secara matematis konsep jaraknya tetap sama (misalnya menggunakan cosine similarity).
+
+Pada model-model lama (e.g. Word2Vec), satu token memiliki satu embedding tetap. Namun pada model modern (berbasis transformer), embedding bersifat **kontekstual**. Contoh, penggunaan kata **bisa** dalam teks berikut akan memiliki representasi embedding yang berbeda karena konteksnya berbeda:
+
+* Seperti ular yang sangat berbisa.
+* Aku bisa membuatmu jatuh cinta kepadaku.
+
+Embedding tidak dibuat secara manual, namun dipelajari dari data teks dalam skala besar. Model dilatih untuk memahami pola dalam bahasa, seperti kata apa yang sering muncul secara bersamaan, dalam konteks seperti apa suatu kata digunakan, dll.
+
+Dari proses tersebut, terbentuklah ruang vektor di mana **hubungan semantik antar teks terpetakan secara alami**. Pendekatan tersebut sudah ada sejak sebelum era transformer (e.g. Word2Vec, GloVe), kemudian berkembang lebih jauh lagi dalam model modern.
+
+Embedding menjadi komponen kunci dalam sistem seperti RAG dan vector database karena kemampuannya dalam **pencarian berbasis kemiripan (similarity search)**. Alurnya sederhananya seperti ini:
+
+1. Query diubah menjadi embedding.
+2. Data (dokumen) juga sudah disimpan dalam bentuk embedding.
+3. Sistem mencari embedding yang paling dekat dengan query.
+
+Hasilnya bukan sebatas pencarian keyword, tapi pencarian berdasarkan **kedekatan makna**, sehingga sistem seperti RAG terasa lebih cerdas dalam menemukan informasi yang relevan.
+
+Singkat cerita, embedding pada dasarnya adalah semacam cara bagi mesin untuk memahami teks dalam bentuk numerik. Namun, bukan sekadar angka biasa, melainkan representasi yang menangkap makna, konteks, dan hubungan antar teks. Dengan memahami embedding, harapannya kita bisa lebih memahami jeroannya model-model yang pintar itu dan sistem semacam RAG.
