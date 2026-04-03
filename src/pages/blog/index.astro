@@ -14,6 +14,9 @@ function parseDateFromId(id: string): Date {
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.id.localeCompare(a.id)
 );
+
+const POSTS_PER_PAGE = 5;
+const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 ---
 
 <Layout title="Blog | Malik Fajar Mubarok" description="Writing about work, explorations, and anything in between.">
@@ -26,15 +29,15 @@ const posts = (await getCollection('blog')).sort(
     </nav>
   </header>
 
-  <main class="blog-listing">
+  <main class="blog-listing" data-per-page={POSTS_PER_PAGE}>
     <h1>Blog</h1>
     <p class="subtitle">Writing about work, explorations, and anything in between.</p>
 
-    <ul class="post-list">
-      {posts.map((post) => {
+    <ul class="post-list" id="post-list">
+      {posts.map((post, i) => {
         const postDate = parseDateFromId(post.id);
         return (
-        <li class="post-item">
+        <li class="post-item" data-index={i} style={i >= POSTS_PER_PAGE ? 'display:none;' : ''}>
           <a href={`/blog/${post.id}`}>
             <h2>{post.data.title}</h2>
             <time datetime={postDate.toISOString()}>
@@ -50,6 +53,16 @@ const posts = (await getCollection('blog')).sort(
         );
       })}
     </ul>
+
+    {totalPages > 1 && (
+      <nav class="blog-pagination" id="blog-pagination">
+        <button class="page-btn" id="first-btn" disabled>First</button>
+        <button class="page-btn" id="prev-btn" disabled>← Prev</button>
+        <span class="page-info" id="page-info">Page 1 of {totalPages}</span>
+        <button class="page-btn" id="next-btn">Next →</button>
+        <button class="page-btn" id="last-btn">Last</button>
+      </nav>
+    )}
   </main>
 
   <footer class="site-footer">
@@ -153,6 +166,46 @@ const posts = (await getCollection('blog')).sort(
     line-height: 1.6;
   }
 
+  /* ── Pagination ── */
+  .blog-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #c8d8e8;
+    border-radius: 4px;
+    background: #fffef9;
+    color: #1a3a6b;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .page-btn:hover:not(:disabled) {
+    background: #1a3a6b;
+    color: #fffef9;
+    border-color: #1a3a6b;
+  }
+
+  .page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .page-info {
+    font-size: 0.9rem;
+    color: #4a6a9b;
+    font-style: italic;
+  }
+
   .site-footer {
     text-align: center;
     padding: 2rem;
@@ -160,3 +213,52 @@ const posts = (await getCollection('blog')).sort(
     font-size: 0.85rem;
   }
 </style>
+
+<script is:inline>
+  (function() {
+    var container = document.querySelector('.blog-listing');
+    var perPage = parseInt(container && container.dataset.perPage || '5', 10);
+    var items = document.querySelectorAll('.post-item');
+    var totalPages = Math.ceil(items.length / perPage);
+    var currentPage = 1;
+
+    if (totalPages <= 1) return;
+
+    var firstBtn = document.getElementById('first-btn');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+    var lastBtn = document.getElementById('last-btn');
+    var pageInfo = document.getElementById('page-info');
+
+    function showPage(page) {
+      currentPage = page;
+      var start = (page - 1) * perPage;
+      var end = start + perPage;
+
+      items.forEach(function(item, i) {
+        item.style.display = (i >= start && i < end) ? '' : 'none';
+      });
+
+      // Re-apply last-child border logic: remove bottom border from last visible item
+      var visibleItems = Array.from(items).filter(function(item) {
+        return item.style.display !== 'none';
+      });
+      visibleItems.forEach(function(item, i) {
+        item.style.borderBottom = i === visibleItems.length - 1 ? 'none' : '';
+      });
+
+      if (firstBtn) firstBtn.disabled = page <= 1;
+      if (prevBtn) prevBtn.disabled = page <= 1;
+      if (nextBtn) nextBtn.disabled = page >= totalPages;
+      if (lastBtn) lastBtn.disabled = page >= totalPages;
+      if (pageInfo) pageInfo.textContent = 'Page ' + page + ' of ' + totalPages;
+
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (firstBtn) firstBtn.addEventListener('click', function() { showPage(1); });
+    if (prevBtn) prevBtn.addEventListener('click', function() { showPage(currentPage - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { showPage(currentPage + 1); });
+    if (lastBtn) lastBtn.addEventListener('click', function() { showPage(totalPages); });
+  })();
+</script>
